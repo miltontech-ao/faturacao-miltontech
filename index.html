@@ -3,26 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MILTON TECH - Gestão de Faturação AGT 2026</title>
+    <title>Sistema de Faturação</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         :root { --azul: #0066FF; --verde: #00D26A; --bg: #0A0F1E; --card: #111827; --borda: #374151; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; padding: 15px; }
-      .container { max-width: 1200px; margin: 0 auto; }
+      .container { max-width: 800px; margin: 0 auto; }
       .header { text-align: center; margin-bottom: 25px; }
       .logo { font-size: 32px; font-weight: 900; color: var(--azul); }
       .logo span { color: var(--verde); }
-      .subtitle { color: #9CA3AF; font-size: 13px; }
-      .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--borda); flex-wrap: wrap; }
-      .tab { padding: 12px 20px; cursor: pointer; background: var(--card); border-radius: 8px 8px 0 0; }
-      .tab.ativo { background: var(--azul); font-weight: 600; }
-      .conteudo { display: none; }
-      .conteudo.ativo { display: block; }
       .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
       .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) {.grid-2 { grid-template-columns: 1fr; } }
         input, select { width: 100%; padding: 12px; margin: 5px 0 15px; background: #1F2937; border: 1px solid var(--borda); color: white; border-radius: 6px; font-size: 16px; }
@@ -30,178 +21,63 @@
       .btn { background: var(--verde); color: white; border: none; padding: 14px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; }
       .btn-azul { background: var(--azul); }
       .btn-vermelho { background: #EF4444; padding: 8px 12px; width: auto; }
-      .btn-pequeno { padding: 8px 12px; font-size: 14px; width: auto; }
       .tabela { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
       .tabela th,.tabela td { border: 1px solid var(--borda); padding: 10px; text-align: left; }
       .tabela th { background: #1F2937; }
-      .kpi { background: #1F2937; padding: 15px; border-radius: 8px; text-align: center; }
-      .kpi-num { font-size: 24px; font-weight: 700; color: var(--verde); }
-      .kpi-label { font-size: 12px; color: #9CA3AF; }
       .total { text-align: right; font-size: 18px; margin-top: 15px; background: #1F2937; padding: 15px; border-radius: 8px; }
       .footer { margin-top: 30px; color: #6B7280; font-size: 11px; text-align: center; }
-      .alerta-info { background: #1e3a8a; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">MILTON <span>TECH</span></div>
-            <div class="subtitle" id="nomeEmpresaDisplay">Sistema de Gestão de Faturação - Conforme Decreto AGT 2026</div>
+            <div style="color: #9CA3AF; font-size: 13px;">Sistema de Faturação</div>
         </div>
 
-        <div class="tabs">
-            <div class="tab ativo" onclick="abrirAba('dashboard')">Dashboard</div>
-            <div class="tab" onclick="abrirAba('nova')">Nova Fatura</div>
-            <div class="tab" onclick="abrirAba('historico')">Histórico</div>
-            <div class="tab" onclick="abrirAba('empresa')">Minha Empresa</div>
-        </div>
-
-        <!-- ABA DASHBOARD -->
-        <div id="dashboard" class="conteudo ativo">
-            <div class="card">
-                <h3>Resumo do Mês</h3>
-                <div class="grid">
-                    <div class="kpi"><div class="kpi-num" id="kpi-faturas">0</div><div class="kpi-label">Faturas Emitidas</div></div>
-                    <div class="kpi"><div class="kpi-num" id="kpi-total">0 Kz</div><div class="kpi-label">Total Faturado</div></div>
-                    <div class="kpi"><div class="kpi-num" id="kpi-iva">0 Kz</div><div class="kpi-label">IVA a Pagar</div></div>
-                    <div class="kpi"><div class="kpi-num" id="kpi-clientes">0</div><div class="kpi-label">Clientes</div></div>
-                </div>
+        <div class="card">
+            <h3>Dados da Empresa</h3>
+            <div class="grid-2">
+                <div><label>Nome da Empresa</label><input type="text" id="empresaNome" placeholder="Ex: Clínica Saúde Lda"></div>
+                <div><label>NIF</label><input type="text" id="empresaNif" placeholder="5000123456"></div>
+                <div><label>Telefone</label><input type="text" id="empresaTel" placeholder="923 000 000"></div>
+                <div><label>Endereço</label><input type="text" id="empresaEnd" placeholder="Luanda, Angola"></div>
             </div>
         </div>
 
-        <!-- ABA MINHA EMPRESA -->
-        <div id="empresa" class="conteudo">
-            <div class="card">
-                <div class="alerta-info">ℹ️ Preenche os dados da TUA empresa. Vão sair no PDF de todas faturas com QR Code AGT.</div>
-                <h3>Dados do Emissor</h3>
-                <div class="grid-2">
-                    <div><label>Nome da Empresa/Instituição*</label><input type="text" id="empresaNome" placeholder="Ex: Farmácia Central Lda"></div>
-                    <div><label>NIF da Empresa*</label><input type="text" id="empresaNif" placeholder="5000123456"></div>
-                    <div><label>Endereço</label><input type="text" id="empresaEndereco" placeholder="Rua, Bairro, Luanda"></div>
-                    <div><label>Telefone</label><input type="text" id="empresaTelefone" placeholder="923 000 000"></div>
-                    <div><label>Email</label><input type="text" id="empresaEmail" placeholder="contato@empresa.co.ao"></div>
-                    <div><label>Regime IVA</label><select id="empresaRegime"><option value="Geral">Regime Geral</option><option value="Simplificado">Regime Simplificado</option></select></div>
-                </div>
-                <button class="btn btn-azul" onclick="salvarEmpresa()">Salvar Dados da Empresa</button>
+        <div class="card">
+            <h3>Dados do Cliente</h3>
+            <div class="grid-2">
+                <div><label>Nome do Cliente</label><input type="text" id="nomeCliente"></div>
+                <div><label>NIF do Cliente</label><input type="text" id="nifCliente" placeholder="999999999"></div>
             </div>
         </div>
 
-        <!-- ABA NOVA FATURA -->
-        <div id="nova" class="conteudo">
-            <div class="card">
-                <h3>Dados do Cliente</h3>
-                <div class="grid-2">
-                    <div><label>Nome do Cliente</label><input type="text" id="nomeCliente" list="listaClientes" placeholder="Digite ou selecione"></div>
-                    <div><label>NIF do Cliente</label><input type="text" id="nifCliente" placeholder="999999999"></div>
-                </div>
-                <datalist id="listaClientes"></datalist>
+        <div class="card">
+            <h3>Adicionar Serviço</h3>
+            <div class="grid-2">
+                <div><label>Descrição</label><input type="text" id="produto" placeholder="Ex: Mensalidade Plano Saúde"></div>
+                <div><label>Quantidade</label><input type="number" id="qtd" value="1"></div>
+                <div><label>Preço Unitário Kz</label><input type="number" id="preco"></div>
+                <div><label>IVA</label><select id="iva"><option value="0">Isento 0%</option><option value="14">IVA 14%</option></select></div>
             </div>
+            <button class="btn" onclick="adicionarLinha()">+ Adicionar</button>
 
-            <div class="card">
-                <h3>Adicionar Produto/Serviço</h3>
-                <div class="grid-2">
-                    <div><label>Descrição</label><input type="text" id="produto"></div>
-                    <div><label>Quantidade</label><input type="number" id="qtd" value="1"></div>
-                    <div><label>Preço Unitário Kz</label><input type="number" id="preco"></div>
-                    <div><label>Taxa de IVA</label><select id="iva"><option value="14">IVA 14%</option><option value="7">IVA 7%</option><option value="0">Isento 0%</option></select></div>
-                </div>
-                <button class="btn" onclick="adicionarLinha()">+ Adicionar à Fatura</button>
+            <table class="tabela" id="tabelaItens">
+                <thead><tr><th>Descrição</th><th>Qtd</th><th>Preço</th><th>IVA</th><th>Total</th><th></th></tr></thead>
+                <tbody></tbody>
+            </table>
 
-                <table class="tabela" id="tabelaItens">
-                    <thead><tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>IVA</th><th>Total</th><th></th></tr></thead>
-                    <tbody></tbody>
-                </table>
-
-                <div class="total" id="totais">Total: 0.00 Kz</div>
-                <button class="btn btn-azul" onclick="finalizarFatura()" style="margin-top: 15px;">Finalizar e Gerar PDF com QR Code AGT</button>
-            </div>
+            <div class="total" id="totais">Total: 0.00 Kz</div>
+            <button class="btn btn-azul" onclick="gerarPDF()" style="margin-top: 15px;">Gerar PDF da Fatura</button>
         </div>
 
-        <!-- ABA HISTÓRICO -->
-        <div id="historico" class="conteudo">
-            <div class="card">
-                <h3>Últimas Faturas Emitidas</h3>
-                <table class="tabela" id="tabelaHistorico">
-                    <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Total</th><th>QR AGT</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="footer">Desenvolvido por <strong>MILTON TECH</strong> | Conforme Decreto Presidencial AGT 2026 | Luanda, Angola</div>
+        <div class="footer">Desenvolvido por <strong>MILTON TECH</strong></div>
     </div>
 
     <script>
-        // ⚠️ COLA AQUI TUAS CHAVES DO SUPABASE
-        const SUPABASE_URL = 'COLA_AQUI_TUA_PROJECT_URL';
-        const SUPABASE_ANON_KEY = 'COLA_AQUI_TUA_ANON_KEY';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         let itens = [];
-        let clientesCache = [];
-        let dadosEmpresa = {};
-
-        function abrirAba(nome) {
-            document.querySelectorAll('.conteudo').forEach(el => el.classList.remove('ativo'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('ativo'));
-            document.getElementById(nome).classList.add('ativo');
-            event.target.classList.add('ativo');
-            if(nome === 'dashboard') carregarDashboard();
-            if(nome === 'historico') carregarHistorico();
-            if(nome === 'empresa') carregarDadosEmpresa();
-        }
-
-        function salvarEmpresa() {
-            dadosEmpresa = {
-                nome: document.getElementById('empresaNome').value,
-                nif: document.getElementById('empresaNif').value,
-                endereco: document.getElementById('empresaEndereco').value,
-                telefone: document.getElementById('empresaTelefone').value,
-                email: document.getElementById('empresaEmail').value,
-                regime: document.getElementById('empresaRegime').value
-            };
-            localStorage.setItem('miltontech_empresa', JSON.stringify(dadosEmpresa));
-            document.getElementById('nomeEmpresaDisplay').innerText = dadosEmpresa.nome || 'Sistema de Gestão de Faturação - Conforme Decreto AGT 2026';
-            alert('Dados da empresa salvos! Agora vão sair nas faturas.');
-        }
-
-        function carregarDadosEmpresa() {
-            const salvo = localStorage.getItem('miltontech_empresa');
-            if(salvo) {
-                dadosEmpresa = JSON.parse(salvo);
-                document.getElementById('empresaNome').value = dadosEmpresa.nome || '';
-                document.getElementById('empresaNif').value = dadosEmpresa.nif || '';
-                document.getElementById('empresaEndereco').value = dadosEmpresa.endereco || '';
-                document.getElementById('empresaTelefone').value = dadosEmpresa.telefone || '';
-                document.getElementById('empresaEmail').value = dadosEmpresa.email || '';
-                document.getElementById('empresaRegime').value = dadosEmpresa.regime || 'Geral';
-                document.getElementById('nomeEmpresaDisplay').innerText = dadosEmpresa.nome || 'Sistema de Gestão de Faturação - Conforme Decreto AGT 2026';
-            }
-        }
-
-        async function carregarDashboard() {
-            const { data: faturas } = await supabase.from('faturas').select('*');
-            const { data: clientes } = await supabase.from('clientes').select('*');
-            let totalMes = 0, ivaMes = 0;
-            faturas?.forEach(f => { totalMes += parseFloat(f.total); ivaMes += parseFloat(f.iva); });
-            document.getElementById('kpi-faturas').innerText = faturas?.length || 0;
-            document.getElementById('kpi-total').innerText = totalMes.toFixed(2) + ' Kz';
-            document.getElementById('kpi-iva').innerText = ivaMes.toFixed(2) + ' Kz';
-            document.getElementById('kpi-clientes').innerText = clientes?.length || 0;
-        }
-
-        async function carregarClientes() {
-            const { data } = await supabase.from('clientes').select('*');
-            clientesCache = data || [];
-            const lista = document.getElementById('listaClientes');
-            lista.innerHTML = '';
-            clientesCache.forEach(c => lista.innerHTML += `<option value="${c.nome}" data-nif="${c.nif}">`);
-        }
-
-        document.getElementById('nomeCliente').addEventListener('input', (e) => {
-            const cliente = clientesCache.find(c => c.nome === e.target.value);
-            if(cliente) document.getElementById('nifCliente').value = cliente.nif;
-        });
+        let numeroFatura = 1;
 
         function adicionarLinha() {
             const produto = document.getElementById('produto').value;
@@ -225,117 +101,78 @@
             let totalGeral = 0;
             itens.forEach((item, i) => {
                 totalGeral += item.total;
-                tbody.innerHTML += `<tr><td>${item.produto}</td><td>${item.qtd}</td><td>${item.preco.toFixed(2)}</td><td>${item.ivaPerc}%</td><td>${item.total.toFixed(2)} Kz</td><td><button class="btn-vermelho btn-pequeno" onclick="remover(${i})">X</button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${item.produto}</td><td>${item.qtd}</td><td>${item.preco.toFixed(2)}</td><td>${item.ivaPerc}%</td><td>${item.total.toFixed(2)} Kz</td><td><button class="btn-vermelho" onclick="remover(${i})">X</button></td></tr>`;
             });
             document.getElementById('totais').innerHTML = `<strong>Total da Fatura: ${totalGeral.toFixed(2)} Kz</strong>`;
         }
 
         function remover(i) { itens.splice(i, 1); atualizarTabela(); }
 
-        async function finalizarFatura() {
-            if(!dadosEmpresa.nome ||!dadosEmpresa.nif) return alert('Vai na aba "Minha Empresa" e cadastra teus dados primeiro!');
-            if(itens.length == 0) return alert('Adiciona produtos primeiro');
+        function gerarPDF() {
+            if(itens.length == 0) return alert('Adiciona serviços primeiro');
+            const empresaNome = document.getElementById('empresaNome').value || 'MINHA EMPRESA';
+            const empresaNif = document.getElementById('empresaNif').value || '0000000000';
+            const empresaTel = document.getElementById('empresaTel').value || '';
+            const empresaEnd = document.getElementById('empresaEnd').value || '';
             const nome = document.getElementById('nomeCliente').value || 'Consumidor Final';
             const nif = document.getElementById('nifCliente').value || '999999999';
-
-            let { data: cliente } = await supabase.from('clientes').select('*').eq('nif', nif).single();
-            if(!cliente) {
-                const { data: novoCliente } = await supabase.from('clientes').insert({nome, nif}).select().single();
-                cliente = novoCliente;
-            }
 
             let base = 0, iva = 0, total = 0;
             itens.forEach(i => { base += i.base; iva += i.iva; total += i.total; });
 
-            const { data: faturas } = await supabase.from('faturas').select('id');
-            const numero = `FT 2026/${((faturas?.length || 0) + 1).toString().padStart(4,'0')}`;
-            const dataFatura = new Date().toISOString().split('T')[0];
-
-            const { data: fatura } = await supabase.from('faturas').insert({numero, cliente_id: cliente.id, base, iva, total, data: dataFatura}).select().single();
-
-            const itensParaSalvar = itens.map(i => ({...i, fatura_id: fatura.id}));
-            await supabase.from('itens_fatura').insert(itensParaSalvar);
-
-            // QR CODE AGT: NIF_EMISSOR*NIF_CLIENTE*DATA*NUMERO*TOTAL*IVA*CHAVE
-            const chave = btoa(numero + dadosEmpresa.nif).substring(0,8);
-            const qrString = `${dadosEmpresa.nif}*${nif}*${dataFatura}*${numero}*${total.toFixed(2)}*${iva.toFixed(2)}*${chave}`;
-
-            gerarPDF(numero, nome, nif, itens, base, iva, total, qrString, dataFatura, chave);
-
-            itens = [];
-            atualizarTabela();
-            document.getElementById('nomeCliente').value = '';
-            document.getElementById('nifCliente').value = '';
-            carregarClientes();
-            alert(`Fatura ${numero} guardada com QR Code AGT!`);
-        }
-
-        async function gerarPDF(numero, nome, nif, itens, base, iva, total, qrString, dataFatura, chave) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // CABEÇALHO EMPRESA
-            doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.text(dadosEmpresa.nome, 105, 15, {align: 'center'});
-            doc.setFontSize(9); doc.setFont(undefined, 'normal');
-            doc.text(`NIF: ${dadosEmpresa.nif} | ${dadosEmpresa.endereco}`, 105, 22, {align: 'center'});
-            doc.text(`Tel: ${dadosEmpresa.telefone} | ${dadosEmpresa.email} | Regime: ${dadosEmpresa.regime}`, 105, 27, {align: 'center'});
-            doc.line(20, 32, 190, 32);
-
-            doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text('FATURA', 20, 42);
+            // CABEÇALHO
+            doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.text(empresaNome, 105, 20, {align: 'center'});
             doc.setFontSize(10); doc.setFont(undefined, 'normal');
-            doc.text(`Nº: ${numero}`, 20, 49);
-            doc.text(`Data: ${new Date(dataFatura).toLocaleDateString('pt-AO')}`, 20, 55);
-            doc.text(`Hora: ${new Date().toLocaleTimeString('pt-AO')}`, 20, 61);
+            doc.text(`NIF: ${empresaNif} | Tel: ${empresaTel}`, 105, 27, {align: 'center'});
+            doc.text(`${empresaEnd}`, 105, 33, {align: 'center'});
+            doc.line(20, 38, 190, 38);
 
-            doc.setFont(undefined, 'bold'); doc.text('CLIENTE', 110, 42);
+            // FATURA
+            doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text('FATURA / RECIBO', 20, 50);
+            doc.setFontSize(10); doc.setFont(undefined, 'normal');
+            doc.text(`Nº: ${String(numeroFatura).padStart(4,'0')}`, 20, 57);
+            doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 20, 63);
+
+            // CLIENTE
+            doc.setFont(undefined, 'bold'); doc.text('CLIENTE:', 110, 50);
             doc.setFont(undefined, 'normal');
-            doc.text(`${nome}`, 110, 49);
-            doc.text(`NIF: ${nif}`, 110, 55);
+            doc.text(`${nome}`, 110, 57);
+            doc.text(`NIF: ${nif}`, 110, 63);
 
-            let y = 72; doc.setFont(undefined, 'bold');
+            // ITENS
+            let y = 78; doc.setFont(undefined, 'bold');
             doc.text('Qtd', 20, y); doc.text('Descrição', 35, y); doc.text('P.Unit', 120, y); doc.text('IVA', 145, y); doc.text('Total', 170, y);
             doc.line(20, y+2, 190, y+2); y += 8; doc.setFont(undefined, 'normal');
 
             itens.forEach(item => {
                 doc.text(`${item.qtd}`, 20, y);
-                doc.text(item.produto.substring(0,30), 35, y);
+                doc.text(item.produto.substring(0,35), 35, y);
                 doc.text(`${item.preco.toFixed(2)}`, 120, y);
                 doc.text(`${item.ivaPerc}%`, 145, y);
                 doc.text(`${item.total.toFixed(2)}`, 170, y);
                 y += 7;
             });
 
+            // TOTAIS
             y += 5; doc.line(120, y, 190, y); y += 7;
-            doc.text(`Base Tributável:`, 120, y); doc.text(`${base.toFixed(2)} Kz`, 190, y, {align: 'right'}); y += 7;
-            doc.text(`IVA:`, 120, y); doc.text(`${iva.toFixed(2)} Kz`, 190, y, {align: 'right'}); y += 7;
+            if(iva > 0) {
+                doc.text(`Base:`, 120, y); doc.text(`${base.toFixed(2)} Kz`, 190, y, {align: 'right'}); y += 7;
+                doc.text(`IVA:`, 120, y); doc.text(`${iva.toFixed(2)} Kz`, 190, y, {align: 'right'}); y += 7;
+            }
             doc.setFont(undefined, 'bold'); doc.setFontSize(12);
             doc.text(`TOTAL:`, 120, y); doc.text(`${total.toFixed(2)} Kz`, 190, y, {align: 'right'});
 
-            // QR CODE AGT
-            const qrDataURL = await QRCode.toDataURL(qrString, { width: 100, margin: 1 });
-            doc.addImage(qrDataURL, 'PNG', 20, y-10, 35, 35);
-            doc.setFontSize(7); doc.setFont(undefined, 'normal');
-            doc.text('QR Code Fiscal AGT', 20, y+28);
-            doc.text(`Chave: ${chave}`, 20, y+32);
-            doc.text('Valide em: portal.agt.minfin.gov.ao', 20, y+36);
+            doc.setFontSize(8); doc.setFont(undefined, 'normal');
+            doc.text('Obrigado pela preferência!', 105, 280, {align: 'center'});
+            doc.save(`Fatura-${String(numeroFatura).padStart(4,'0')}.pdf`);
 
-            doc.setFontSize(8); doc.text(`Processado por programa ${dadosEmpresa.nome} - Conforme Decreto AGT 2026`, 105, 285, {align: 'center'});
-            doc.save(`${numero.replace('/', '-')}.pdf`);
+            numeroFatura++;
+            itens = [];
+            atualizarTabela();
         }
-
-        async function carregarHistorico() {
-            const { data } = await supabase.from('faturas').select('*, clientes(nome)').order('id', {ascending: false}).limit(20);
-            const tbody = document.querySelector('#tabelaHistorico tbody');
-            tbody.innerHTML = '';
-            data?.forEach(f => {
-                tbody.innerHTML += `<tr><td>${f.numero}</td><td>${new Date(f.data).toLocaleDateString()}</td><td>${f.clientes.nome}</td><td>${parseFloat(f.total).toFixed(2)} Kz</td><td style="color: #00D26A;">✓ AGT</td></tr>`;
-            });
-        }
-
-        // Inicia
-        carregarDadosEmpresa();
-        carregarClientes();
-        carregarDashboard();
     </script>
 </body>
-                                                    </html>
+    </html>
