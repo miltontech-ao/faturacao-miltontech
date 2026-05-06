@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MILTON TECH - Sistema de Faturação</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { --azul: #0066FF; --verde: #00D26A; --bg: #0A0F1E; --card: #111827; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .logo { font-size: 28px; font-weight: 900; color: var(--azul); margin-bottom: 5px; text-align: center; }
+    .logo span { color: var(--verde); }
+    .subtitle { color: #9CA3AF; margin-bottom: 20px; font-size: 13px; text-align: center; }
+    .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0 15px; background: #1F2937; border: 1px solid #374151; color: white; border-radius: 6px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+    .btn { background: var(--verde); color: white; border: none; padding: 14px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; }
+    .btn-azul { background: var(--azul); }
+    .btn-vermelho { background: #EF4444; padding: 6px 10px; width: auto; }
+    .tabela { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    .tabela th, .tabela td { border: 1px solid #374151; padding: 8px; text-align: left; }
+    .tabela th { background: #1F2937; }
+    .total { text-align: right; font-size: 18px; margin-top: 15px; background: #1F2937; padding: 15px; border-radius: 8px; }
+    .footer { margin-top: 30px; color: #6B7280; font-size: 11px; text-align: center; }
+    .footer strong { color: var(--verde); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">MILTON <span>TECH</span></div>
+        <div class="subtitle">Sistema de Faturação - Certificado AGT</div>
+        
+        <div class="card">
+            <h3>Dados do Cliente</h3>
+            <div class="grid">
+                <input type="text" id="nomeCliente" placeholder="Nome do Cliente">
+                <input type="text" id="nifCliente" placeholder="NIF do Cliente">
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Adicionar Produto/Serviço</h3>
+            <div class="grid">
+                <input type="text" id="produto" placeholder="Descrição">
+                <input type="number" id="qtd" placeholder="Quantidade" value="1">
+                <input type="number" id="preco" placeholder="Preço Unitário Kz">
+                <select id="iva">
+                    <option value="14">IVA 14%</option>
+                    <option value="0">IVA 0% - Isento</option>
+                </select>
+            </div>
+            <button class="btn" onclick="adicionarLinha()">+ Adicionar à Fatura</button>
+            
+            <table class="tabela" id="tabelaItens">
+                <thead>
+                    <tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>IVA</th><th>Total</th><th></th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            
+            <div class="total" id="totais">
+                Base: 0.00 Kz<br>
+                IVA: 0.00 Kz<br>
+                <strong>Total: 0.00 Kz</strong>
+            </div>
+            <button class="btn btn-azul" onclick="gerarPDF()" style="margin-top: 15px;">Gerar Fatura PDF</button>
+        </div>
+        
+        <div class="footer">Desenvolvido por <strong>MILTON TECH</strong> | Luanda, Angola</div>
+    </div>
+
+    <script>
+        let itens = [];
+        let numFatura = localStorage.getItem('numFatura') || 1;
+
+        function adicionarLinha() {
+            const produto = document.getElementById('produto').value;
+            const qtd = parseFloat(document.getElementById('qtd').value);
+            const preco = parseFloat(document.getElementById('preco').value);
+            const ivaPerc = parseFloat(document.getElementById('iva').value);
+            
+            if(!produto || !qtd || !preco) {
+                alert('Preenche Descrição, Quantidade e Preço');
+                return;
+            }
+            
+            const base = qtd * preco;
+            const iva = base * (ivaPerc / 100);
+            const total = base + iva;
+            
+            itens.push({produto, qtd, preco, ivaPerc, base, iva, total});
+            atualizarTabela();
+            
+            document.getElementById('produto').value = '';
+            document.getElementById('qtd').value = '1';
+            document.getElementById('preco').value = '';
+        }
+
+        function atualizarTabela() {
+            const tbody = document.querySelector('#tabelaItens tbody');
+            tbody.innerHTML = '';
+            let totalBase = 0, totalIva = 0, totalGeral = 0;
+            
+            itens.forEach((item, i) => {
+                totalBase += item.base;
+                totalIva += item.iva;
+                totalGeral += item.total;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.produto}</td>
+                        <td>${item.qtd}</td>
+                        <td>${item.preco.toFixed(2)}</td>
+                        <td>${item.ivaPerc}%</td>
+                        <td>${item.total.toFixed(2)} Kz</td>
+                        <td><button class="btn-vermelho" onclick="remover(${i})">X</button></td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('totais').innerHTML = `
+                Base Tributável: ${totalBase.toFixed(2)} Kz<br>
+                IVA: ${totalIva.toFixed(2)} Kz<br>
+                <strong>Total da Fatura: ${totalGeral.toFixed(2)} Kz</strong>
+            `;
+        }
+
+        function remover(i) {
+            itens.splice(i, 1);
+            atualizarTabela();
+        }
+
+        function gerarPDF() {
+            if(itens.length == 0) {
+                alert('Adiciona produtos primeiro');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const nomeCliente = document.getElementById('nomeCliente').value || 'Consumidor Final';
+            const nifCliente = document.getElementById('nifCliente').value || '999999999';
+            
+            doc.setFontSize(18);
+            doc.text('MILTON TECH', 105, 20, {align: 'center'});
+            doc.setFontSize(10);
+            doc.text('Sistema de Faturação - Luanda, Angola', 105, 27, {align: 'center'});
+            
+            doc.setFontSize(12);
+            doc.text(`FATURA Nº: FT 2026/${numFatura}`, 20, 45);
+            doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 20, 52);
+            doc.text(`Cliente: ${nomeCliente}`, 20, 62);
+            doc.text(`NIF: ${nifCliente}`, 20, 69);
+            
+            let y = 85;
+            doc.text('Qtd  Descrição                    Preço      Total', 20, y);
+            doc.line(20, y+2, 190, y+2);
+            y += 10;
+            
+            let totalBase = 0, totalIva = 0, totalGeral = 0;
+            itens.forEach(item => {
+                doc.text(`${item.qtd}x`, 20, y);
+                doc.text(item.produto.substring(0,25), 35, y);
+                doc.text(`${item.preco.toFixed(2)}`, 130, y);
+                doc.text(`${item.total.toFixed(2)} Kz`, 160, y);
+                y += 7;
+                totalBase += item.base;
+                totalIva += item.iva;
+                totalGeral += item.total;
+            });
+            
+            y += 10;
+            doc.line(20, y, 190, y);
+            doc.text(`Base Tributável: ${totalBase.toFixed(2)} Kz`, 130, y+10);
+            doc.text(`IVA 14%: ${totalIva.toFixed(2)} Kz`, 130, y+17);
+            doc.setFontSize(14);
+            doc.text(`TOTAL: ${totalGeral.toFixed(2)} Kz`, 130, y+27);
+            
+            doc.setFontSize(8);
+            doc.text('Processado por programa certificado MILTON TECH', 105, 280, {align: 'center'});
+            
+            doc.save(`Fatura_FT2026-${numFatura}.pdf`);
+            numFatura++;
+            localStorage.setItem('numFatura', numFatura);
+            itens = [];
+            atualizarTabela();
+            document.getElementById('nomeCliente').value = '';
+            document.getElementById('nifCliente').value = '';
+        }
+    </script>
+</body>
+          </html>
