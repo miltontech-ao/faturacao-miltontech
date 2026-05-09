@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MILTON TECH</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #0F172A; color: #E2E8F0; padding: 15px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .logo { font-size: 28px; font-weight: bold; }
+        .azul { color: #3B82F6; }
+        .verde { color: #10B981; }
+        .card { background: #1E293B; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; }
+        .card h2 { font-size: 18px; margin-bottom: 15px; }
+        label { display: block; font-size: 13px; margin: 12px 0 6px; color: #CBD5E1; }
+        input { width: 100%; padding: 12px; background: #0F172A; border: 1px solid #334155; border-radius: 8px; color: #E2E8F0; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-gerar { width: 100%; padding: 16px; background: linear-gradient(90deg, #3B82F6, #10B981); border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo"><span class="azul">MILTON</span> <span class="verde">TECH</span></div>
+        <div style="color:#94A3B8; font-size:14px;">Sistema de Faturação</div>
+    </div>
+
+    <div class="card">
+        <h2>Dados da Empresa</h2>
+        <label>Nome da Empresa</label>
+        <input id="emp_nome" value="MILTON TECH, LDA">
+        <label>NIF</label>
+        <input id="emp_nif" value="5000123456">
+        <label>Telefone</label>
+        <input id="emp_tel" value="923 000 000">
+        <label>Endereço</label>
+        <input id="emp_end" value="Rua Comandante Gika, Luanda">
+    </div>
+
+    <div class="card">
+        <h2>Dados do Cliente</h2>
+        <label>Nome do Cliente</label>
+        <input id="cli_nome" placeholder="Nome completo">
+        <label>NIF do Cliente</label>
+        <input id="cli_nif" value="999999999">
+    </div>
+
+    <div class="card">
+        <h2>Itens da Fatura</h2>
+        <label>Descrição</label>
+        <input id="item_desc" value="Licença Software Milton Tech Pro">
+        <div class="grid">
+            <div>
+                <label>Qtd</label>
+                <input id="item_qtd" type="number" value="1">
+            </div>
+            <div>
+                <label>Preço Unit. Kz</label>
+                <input id="item_preco" type="number" value="200000">
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-gerar" onclick="gerarFatura()">🧾 GERAR FATURA AGT 2026</button>
+    
+    <div id="qrcode" style="display:none;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+window.gerarFatura = async function() {
+    try {
+        // Verifica se bibliotecas carregaram
+        if (typeof window.jspdf === 'undefined') {
+            alert('Erro: Biblioteca PDF não carregou. Liga a internet e recarrega a página.');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        
+        // 1. PEGAR DADOS
+        const emp_nome = document.getElementById('emp_nome').value;
+        const emp_nif = document.getElementById('emp_nif').value;
+        const emp_tel = document.getElementById('emp_tel').value;
+        const emp_end = document.getElementById('emp_end').value;
+        const cli_nome = document.getElementById('cli_nome').value || "Consumidor Final";
+        const cli_nif = document.getElementById('cli_nif').value || "999999999";
+        const item_desc = document.getElementById('item_desc').value;
+        const item_qtd = parseFloat(document.getElementById('item_qtd').value) || 1;
+        const item_preco = parseFloat(document.getElementById('item_preco').value) || 0;
+        
+        if (!emp_nome || !emp_nif || !item_desc) {
+            alert("Preenche Nome da Empresa, NIF e Descrição");
+            return;
+        }
+
+        // 2. CÁLCULOS
+        const numFatura = 'FT' + Date.now();
+        const dataEmissao = new Date().toLocaleString('pt-AO');
+        const subtotal = item_qtd * item_preco;
+        const iva = subtotal * 0.14;
+        const total = subtotal + iva;
+        
+        // Hash simples
+        const hashDados = emp_nif + dataEmissao.replace(/[\/\s:]/g,'') + numFatura + total.toFixed(2);
+        let hash = 0;
+        for (let i = 0; i < hashDados.length; i++) {
+            hash = ((hash << 5) - hash) + hashDados.charCodeAt(i);
+            hash = hash & hash;
+        }
+        const hashHex = Math.abs(hash).toString(16).toUpperCase().padStart(32, '0').slice(0,32);
+        
+        // 3. QR CODE
+        const qrString = `A:${emp_nif}*B:${cli_nif}*C:${dataEmissao.replace(/[\/\s:]/g,'')}*D:${numFatura}*E:N*F:${subtotal.toFixed(2)}*G:${iva.toFixed(2)}*H:${total.toFixed(2)}*O:${hashHex}`;
+        
+        const qrDataUrl = await QRCode.toDataURL(qrString, { width: 100 });
+
+        // 4. PDF
+        const doc = new jsPDF();
+        
+        doc.setFillColor(30, 58, 138);
+        doc.rect(0, 0, 210, 25, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.text(emp_nome, 105, 15, { align: 'center' });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text('Sistema de Facturação AGT 2026', 105, 32, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.text('EMPRESA', 15, 45);
+        doc.setFontSize(10);
+        doc.text(`NIF: ${emp_nif}`, 15, 52);
+        doc.text(emp_end, 15, 57);
+        doc.text(`Tel: ${emp_tel}`, 15, 62);
+        
+        doc.setFontSize(14);
+        doc.text(`FACTURA: ${numFatura}`, 195, 52, { align: 'right' });
+        doc.setFontSize(10);
+        doc.text(`DATA: ${dataEmissao}`, 195, 60, { align: 'right' });
+        
+        doc.line(15, 68, 195, 68);
+        
+        doc.setFontSize(12);
+        doc.text('CLIENTE', 15, 76);
+        doc.setFontSize(10);
+        doc.text(`Nome: ${cli_nome}`, 15, 83);
+        doc.text(`NIF: ${cli_nif}`, 120, 83);
+        
+        // Tabela
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 92, 180, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text('Descrição', 20, 97);
+        doc.text('Qtd', 120, 97);
+        doc.text('Preço', 145, 97);
+        doc.text('Total', 175, 97);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.text(item_desc.substring(0,35), 20, 107);
+        doc.text(String(item_qtd), 125, 107);
+        doc.text(item_preco.toLocaleString() + ' Kz', 170, 107, { align: 'right' });
+        doc.text(subtotal.toLocaleString() + ' Kz', 193, 107, { align: 'right' });
+        
+        // QR + Totais
+        doc.addImage(qrDataUrl, 'PNG', 15, 120, 30, 30);
+        
+        doc.text('Subtotal:', 140, 125);
+        doc.text(subtotal.toLocaleString() + ' Kz', 193, 125, { align: 'right' });
+        doc.text('IVA 14%:', 140, 132);
+        doc.text(iva.toLocaleString() + ' Kz', 193, 132, { align: 'right' });
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('TOTAL:', 140, 142);
+        doc.text(total.toLocaleString() + ' Kz', 193, 142, { align: 'right' });
+        
+        // Rodapé
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Hash AGT: ${hashHex}`, 15, 160);
+        doc.text('Documento processado por computador - Decreto 28/20', 105, 280, { align: 'center' });
+        
+        // 5. SALVAR
+        doc.save(`${numFatura}.pdf`);
+        alert(`✅ Factura ${numFatura} gerada! Verifica na Download`);
+        
+    } catch (error) {
+        alert('Erro ao gerar: ' + error.message);
+        console.error(error);
+    }
+}
+</script>
+</body>
+</html>
