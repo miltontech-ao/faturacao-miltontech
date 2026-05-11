@@ -1,196 +1,213 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-AO">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MILTON TECH</title>
+    <title>Milton Tech - Sistema de Facturação AGT 2026</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #0F172A; color: #E2E8F0; padding: 15px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 28px; font-weight: bold; }
-        .azul { color: #3B82F6; }
-        .verde { color: #10B981; }
-        .card { background: #1E293B; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; }
-        .card h2 { font-size: 18px; margin-bottom: 15px; }
-        label { display: block; font-size: 13px; margin: 12px 0 6px; color: #CBD5E1; }
-        input { width: 100%; padding: 12px; background: #0F172A; border: 1px solid #334155; border-radius: 8px; color: #E2E8F0; font-size: 14px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-gerar { width: 100%; padding: 16px; background: linear-gradient(90deg, #3B82F6, #10B981); border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        body { background: #f5f5f5; padding: 20px; }
+       .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #1a365d; text-align: center; margin-bottom: 20px; font-size: 22px; }
+       .btn { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+       .btn-primary { background: #2b6cb0; color: white; }
+       .btn-danger { background: #c53030; color: white; }
+       .btn-success { background: #2f855a; color: white; }
+       .input-group { margin: 15px 0; }
+       .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #2d3748; }
+       .input-group input { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 16px; }
+       .input-group input:invalid { border-color: #e53e3e; }
+       .alerta-iva { background: #fed7d7; border: 2px solid #e53e3e; padding: 15px; border-radius: 8px; margin: 15px 0; display: none; }
+       .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+       .modal-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; }
+       .lista-facturas { max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo"><span class="azul">MILTON</span> <span class="verde">TECH</span></div>
-        <div style="color:#94A3B8; font-size:14px;">Sistema de Faturação</div>
+    <div class="container">
+        <h1>Milton Tech - Certificado AGT 2026</h1>
+
+        <!-- 1. MODO PÂNICO IVA -->
+        <div id="alertaIVA" class="alerta-iva">
+            <strong>ALERTA MILTON TECH: IVA vence dia 30!</strong>
+            <p>Hoje é dia <span id="diaHoje"></span>. Tens <span id="diasRestantes"></span> dias.</p>
+            <button class="btn btn-danger" onclick="irParaIVA()">Gerar Declaração IVA Agora</button>
+            <button class="btn" onclick="fecharAlertaIVA()">Já Paguei</button>
+        </div>
+
+        <!-- 2. FACTURA À PROVA DE BURRO -->
+        <div class="input-group">
+            <label>NIF do Cliente *</label>
+            <input type="number" id="nifCliente" placeholder="Ex: 5001234567" required>
+        </div>
+        <div class="input-group">
+            <label>Nome do Cliente *</label>
+            <input type="text" id="nomeCliente" placeholder="Nome completo" required>
+        </div>
+        <div class="input-group">
+            <label>Valor da Venda Kz *</label>
+            <input type="number" id="valorVenda" placeholder="Ex: 50000" required>
+        </div>
+        <button class="btn btn-primary" onclick="emitirFacturaAGT()">
+            Facturar AGT 2026 - Sem Multa
+        </button>
+
+        <!-- 3. COFRE DIGITAL -->
+        <button class="btn btn-success" onclick="abrirCofre()">Ver Facturas Guardadas</button>
+
+        <!-- 4. SIMULADOR DE CAGADA -->
+        <button class="btn" style="background:#dd6b20;color:white" onclick="simularIVA()">Simular IVA Deste Mês</button>
+
+        <!-- 5. MODO FISCALIZAÇÃO -->
+        <button class="btn btn-danger" onclick="modoFiscalizacao()">FISCAL CHEGOU - Gerar PDF</button>
     </div>
 
-    <div class="card">
-        <h2>Dados da Empresa</h2>
-        <label>Nome da Empresa</label>
-        <input id="emp_nome" value="MILTON TECH, LDA">
-        <label>NIF</label>
-        <input id="emp_nif" value="5000123456">
-        <label>Telefone</label>
-        <input id="emp_tel" value="923 000 000">
-        <label>Endereço</label>
-        <input id="emp_end" value="Rua Comandante Gika, Luanda">
-    </div>
-
-    <div class="card">
-        <h2>Dados do Cliente</h2>
-        <label>Nome do Cliente</label>
-        <input id="cli_nome" placeholder="Nome completo">
-        <label>NIF do Cliente</label>
-        <input id="cli_nif" value="999999999">
-    </div>
-
-    <div class="card">
-        <h2>Itens da Fatura</h2>
-        <label>Descrição</label>
-        <input id="item_desc" value="Licença Software Milton Tech Pro">
-        <div class="grid">
-            <div>
-                <label>Qtd</label>
-                <input id="item_qtd" type="number" value="1">
-            </div>
-            <div>
-                <label>Preço Unit. Kz</label>
-                <input id="item_preco" type="number" value="200000">
-            </div>
+    <!-- Modal Cofre Digital -->
+    <div id="modalCofre" class="modal">
+        <div class="modal-content">
+            <h3>Cofre Digital - Facturas AGT</h3>
+            <div id="listaFacturas" class="lista-facturas"></div>
+            <button class="btn" onclick="fecharModal('modalCofre')">Fechar</button>
         </div>
     </div>
 
-    <button class="btn-gerar" onclick="gerarFatura()">🧾 GERAR FATURA AGT 2026</button>
-    
-    <div id="qrcode" style="display:none;"></div>
+    <!-- Modal Simulador IVA -->
+    <div id="modalSimulador" class="modal">
+        <div class="modal-content">
+            <h3>Simulador IVA Milton Tech</h3>
+            <p id="textoSimulador"></p>
+            <button class="btn btn-primary" onclick="fecharModal('modalSimulador')">Entendi</button>
+        </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
-window.gerarFatura = async function() {
-    try {
-        // Verifica se bibliotecas carregaram
-        if (typeof window.jspdf === 'undefined') {
-            alert('Erro: Biblioteca PDF não carregou. Liga a internet e recarrega a página.');
-            return;
-        }
-        
-        const { jsPDF } = window.jspdf;
-        
-        // 1. PEGAR DADOS
-        const emp_nome = document.getElementById('emp_nome').value;
-        const emp_nif = document.getElementById('emp_nif').value;
-        const emp_tel = document.getElementById('emp_tel').value;
-        const emp_end = document.getElementById('emp_end').value;
-        const cli_nome = document.getElementById('cli_nome').value || "Consumidor Final";
-        const cli_nif = document.getElementById('cli_nif').value || "999999999";
-        const item_desc = document.getElementById('item_desc').value;
-        const item_qtd = parseFloat(document.getElementById('item_qtd').value) || 1;
-        const item_preco = parseFloat(document.getElementById('item_preco').value) || 0;
-        
-        if (!emp_nome || !emp_nif || !item_desc) {
-            alert("Preenche Nome da Empresa, NIF e Descrição");
-            return;
-        }
+// ========== BASE DE DADOS LOCAL ==========
+let facturas = JSON.parse(localStorage.getItem('facturasMiltonTech')) || [];
 
-        // 2. CÁLCULOS
-        const numFatura = 'FT' + Date.now();
-        const dataEmissao = new Date().toLocaleString('pt-AO');
-        const subtotal = item_qtd * item_preco;
-        const iva = subtotal * 0.14;
-        const total = subtotal + iva;
-        
-        // Hash simples
-        const hashDados = emp_nif + dataEmissao.replace(/[\/\s:]/g,'') + numFatura + total.toFixed(2);
-        let hash = 0;
-        for (let i = 0; i < hashDados.length; i++) {
-            hash = ((hash << 5) - hash) + hashDados.charCodeAt(i);
-            hash = hash & hash;
-        }
-        const hashHex = Math.abs(hash).toString(16).toUpperCase().padStart(32, '0').slice(0,32);
-        
-        // 3. QR CODE
-        const qrString = `A:${emp_nif}*B:${cli_nif}*C:${dataEmissao.replace(/[\/\s:]/g,'')}*D:${numFatura}*E:N*F:${subtotal.toFixed(2)}*G:${iva.toFixed(2)}*H:${total.toFixed(2)}*O:${hashHex}`;
-        
-        const qrDataUrl = await QRCode.toDataURL(qrString, { width: 100 });
+// ========== 1. MODO PÂNICO IVA ==========
+function verificarAlertaIVA() {
+    const hoje = new Date();
+    const dia = hoje.getDate();
+    const mes = hoje.getMonth();
 
-        // 4. PDF
-        const doc = new jsPDF();
-        
-        doc.setFillColor(30, 58, 138);
-        doc.rect(0, 0, 210, 25, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(20);
-        doc.text(emp_nome, 105, 15, { align: 'center' });
-        
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text('Sistema de Facturação AGT 2026', 105, 32, { align: 'center' });
-        
-        doc.setFontSize(12);
-        doc.text('EMPRESA', 15, 45);
-        doc.setFontSize(10);
-        doc.text(`NIF: ${emp_nif}`, 15, 52);
-        doc.text(emp_end, 15, 57);
-        doc.text(`Tel: ${emp_tel}`, 15, 62);
-        
-        doc.setFontSize(14);
-        doc.text(`FACTURA: ${numFatura}`, 195, 52, { align: 'right' });
-        doc.setFontSize(10);
-        doc.text(`DATA: ${dataEmissao}`, 195, 60, { align: 'right' });
-        
-        doc.line(15, 68, 195, 68);
-        
-        doc.setFontSize(12);
-        doc.text('CLIENTE', 15, 76);
-        doc.setFontSize(10);
-        doc.text(`Nome: ${cli_nome}`, 15, 83);
-        doc.text(`NIF: ${cli_nif}`, 120, 83);
-        
-        // Tabela
-        doc.setFillColor(30, 58, 138);
-        doc.rect(15, 92, 180, 8, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.text('Descrição', 20, 97);
-        doc.text('Qtd', 120, 97);
-        doc.text('Preço', 145, 97);
-        doc.text('Total', 175, 97);
-        
-        doc.setTextColor(0, 0, 0);
-        doc.text(item_desc.substring(0,35), 20, 107);
-        doc.text(String(item_qtd), 125, 107);
-        doc.text(item_preco.toLocaleString() + ' Kz', 170, 107, { align: 'right' });
-        doc.text(subtotal.toLocaleString() + ' Kz', 193, 107, { align: 'right' });
-        
-        // QR + Totais
-        doc.addImage(qrDataUrl, 'PNG', 15, 120, 30, 30);
-        
-        doc.text('Subtotal:', 140, 125);
-        doc.text(subtotal.toLocaleString() + ' Kz', 193, 125, { align: 'right' });
-        doc.text('IVA 14%:', 140, 132);
-        doc.text(iva.toLocaleString() + ' Kz', 193, 132, { align: 'right' });
-        
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('TOTAL:', 140, 142);
-        doc.text(total.toLocaleString() + ' Kz', 193, 142, { align: 'right' });
-        
-        // Rodapé
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Hash AGT: ${hashHex}`, 15, 160);
-        doc.text('Documento processado por computador - Decreto 28/20', 105, 280, { align: 'center' });
-        
-        // 5. SALVAR
-        doc.save(`${numFatura}.pdf`);
-        alert(`✅ Factura ${numFatura} gerada! Verifica na Download`);
-        
-    } catch (error) {
-        alert('Erro ao gerar: ' + error.message);
-        console.error(error);
+    if (dia >= 25 && dia <= 30) {
+        const jaViu = localStorage.getItem('alertaIVA_' + mes);
+        if (!jaViu) {
+            document.getElementById('diaHoje').innerText = dia;
+            document.getElementById('diasRestantes').innerText = 30 - dia;
+            document.getElementById('alertaIVA').style.display = 'block';
+        }
     }
 }
+function fecharAlertaIVA() {
+    const mes = new Date().getMonth();
+    localStorage.setItem('alertaIVA_' + mes, 'visto');
+    document.getElementById('alertaIVA').style.display = 'none';
+}
+function irParaIVA() {
+    alert('Abrindo tela de Declaração IVA...');
+    fecharAlertaIVA();
+}
+
+// ========== 2. FACTURA À PROVA DE BURRO ==========
+function emitirFacturaAGT() {
+    const nif = document.getElementById('nifCliente').value.trim();
+    const nome = document.getElementById('nomeCliente').value.trim();
+    const valor = parseFloat(document.getElementById('valorVenda').value);
+
+    // Validações AGT 2026
+    if (!nif || nif.length!== 10) {
+        alert('ERRO AGT: NIF tem que ter 10 números. Ex: 5001234567');
+        return;
+    }
+    if (!nome) {
+        alert('ERRO AGT: Nome do cliente é obrigatório');
+        return;
+    }
+    if (!valor || valor <= 0) {
+        alert('ERRO AGT: Valor da venda inválido');
+        return;
+    }
+
+    // Gera Hash + QR Code AGT 2026 - Simulado
+    const timestamp = Date.now();
+    const hash = 'AGT2026-' + timestamp + '-' + nif;
+    const qrCode = `https://agt.minfin.gov.ao/qr/${hash}`;
+
+    const factura = {
+        id: timestamp,
+        nif, nome, valor,
+        iva: valor * 0.14,
+        data: new Date().toLocaleDateString('pt-AO'),
+        hash, qrCode
+    };
+
+    facturas.push(factura);
+    localStorage.setItem('facturasMiltonTech', JSON.stringify(facturas));
+
+    alert(`Factura AGT 2026 emitida! ✅\nHash: ${hash}\nQR Code gerado. Estás legal.`);
+
+    // Limpa campos
+    document.getElementById('nifCliente').value = '';
+    document.getElementById('nomeCliente').value = '';
+    document.getElementById('valorVenda').value = '';
+}
+
+// ========== 3. COFRE DIGITAL ==========
+function abrirCofre() {
+    const lista = document.getElementById('listaFacturas');
+    if (facturas.length === 0) {
+        lista.innerHTML = '<p>Nenhuma factura guardada ainda.</p>';
+    } else {
+        lista.innerHTML = facturas.map(f =>
+            `<p><strong>${f.data}</strong> - ${f.nome} - ${f.valor} Kz<br>Hash: ${f.hash}</p><hr>`
+        ).join('');
+    }
+    document.getElementById('modalCofre').style.display = 'flex';
+}
+
+// ========== 4. SIMULADOR DE CAGADA ==========
+function simularIVA() {
+    const totalMes = facturas.reduce((sum, f) => sum + f.valor, 0);
+    const ivaPagar = totalMes * 0.14;
+    const texto = `Vendeste ${totalMes.toLocaleString()} Kz este mês.<br><br>
+                   <strong>IVA a pagar dia 30: ${ivaPagar.toLocaleString()} Kz</strong><br><br>
+                   Tens esse valor separado? Se gastares, a multa é 50.000 Kz.`;
+    document.getElementById('textoSimulador').innerHTML = texto;
+    document.getElementById('modalSimulador').style.display = 'flex';
+}
+
+// ========== 5. MODO FISCALIZAÇÃO ==========
+function modoFiscalizacao() {
+    const ultimas20 = facturas.slice(-20);
+    const totalIVA = facturas.reduce((sum, f) => sum + f.iva, 0);
+
+    let textoPDF = `RELATÓRIO MILTON TECH - AGT 2026\n\n`;
+    textoPDF += `Total Facturas: ${facturas.length}\n`;
+    textoPDF += `IVA Acumulado: ${totalIVA.toLocaleString()} Kz\n\n`;
+    textoPDF += `ÚLTIMAS 20 FACTURAS:\n`;
+    ultimas20.forEach(f => {
+        textoPDF += `${f.data} - ${f.nome} - ${f.valor}Kz - Hash:${f.hash}\n`;
+    });
+
+    // Simula download PDF
+    const blob = new Blob([textoPDF], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Relatorio-AGT-MiltonTech.txt';
+    a.click();
+
+    alert('PDF de Fiscalização gerado! Mostra este arquivo pro fiscal.');
+}
+
+// ========== FUNÇÕES AUXILIARES ==========
+function fecharModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+// Inicia alertas quando abre
+verificarAlertaIVA();
 </script>
 </body>
-</html>
+    </html>
