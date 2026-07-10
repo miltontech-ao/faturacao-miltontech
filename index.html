@@ -1,220 +1,120 @@
 <!DOCTYPE html>
-<html lang="pt-AO">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Milton Tech - AGT 2026 Certificado</title>
-    <style>
-        :root { --azul: #1e40af; --verde: #059669; --vermelho: #dc2626; --cinza: #f1f5f9; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, Arial, sans-serif; }
-        body { background: var(--cinza); padding: 12px; }
-     .app { max-width: 480px; margin: 0 auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--azul); font-size: 20px; margin-bottom: 4px; }
-     .tag { background: var(--verde); color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-     .btn { width: 100%; padding: 16px; margin: 8px 0; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-     .btn:active { transform: scale(0.98); }
-     .btn-azul { background: var(--azul); color: white; }
-     .btn-verde { background: var(--verde); color: white; }
-     .btn-vermelho { background: var(--vermelho); color: white; }
-     .btn-laranja { background: #ea580c; color: white; }
-        input { width: 100%; padding: 14px; margin: 6px 0 16px 0; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; }
-        input:focus { border-color: var(--azul); outline: none; }
-        label { font-weight: 700; color: #334155; font-size: 14px; display: block; }
-     .alerta-iva { display: none; background: #fef2f2; border: 2px solid var(--vermelho); padding: 16px; border-radius: 10px; margin: 15px 0; }
-     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 50; }
-     .modal-box { background: white; padding: 20px; border-radius: 14px; width: 92%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
-     .linha { border-bottom: 1px solid #e2e8f0; padding: 12px 0; }
-     .linha:last-child { border: none; }
-     .muted { color: #64748b; font-size: 13px; }
-     .totais { background: #f8fafc; padding: 12px; border-radius: 8px; margin: 10px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MILTON TECH - Sistema de Faturação</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { 
+        background: #0d1117; 
+        color: #e6edf3; 
+        padding: 20px;
+    }
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 { 
+        font-size: 32px; 
+        font-weight: 800; 
+        letter-spacing: 1px;
+    }
+    .header .milton { color: #1e90ff; }
+    .header .tech { color: #00ff7f; }
+    .header p { color: #8b949e; margin-top: 5px; font-size: 14px; }
+
+    .card {
+        background: #161b22;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #30363d;
+    }
+    .card h2 { font-size: 18px; margin-bottom: 5px; }
+    .card .subtitle { color: #8b949e; font-size: 13px; margin-bottom: 15px; }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { 
+        display: block; 
+        font-size: 14px; 
+        margin-bottom: 6px; 
+        color: #c9d1d9;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        color: #e6edf3;
+        font-size: 14px;
+        outline: none;
+    }
+    .form-group input:focus {
+        border-color: #1e90ff;
+    }
+    .form-group input::placeholder {
+        color: #6e7681;
+    }
+
+    .btn {
+        background: #238636;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        font-size: 15px;
+    }
+    .btn:hover { background: #2ea043; }
+
+    @media print { .btn { display: none; } }
+</style>
 </head>
 <body>
-    <div class="app">
-        <header>
-            <h1>Milton Tech</h1>
-            <span class="tag">CERTIFICADO AGT 2026</span>
-        </header>
 
-        <!-- 1. ALARME IVA: Mostra só de dia 25 a 30 -->
-        <div id="alertaIVA" class="alerta-iva">
-            <strong>ATENÇÃO: IVA vence dia 30!</strong><br>
-            Hoje: <span id="diaHoje"></span>. Faltam <span id="diasRestantes"></span> dias.
-            <button class="btn btn-vermelho" onclick="abrirIVA()">Declarar IVA Agora</button>
-            <button class="btn" onclick="dispensarIVA()" style="background:#e2e8f0;color:#334155">Já Resolvi</button>
+    <div class="header">
+        <h1><span class="milton">MILTON</span> <span class="tech">TECH</span></h1>
+        <p>Sistema de Faturação</p>
+    </div>
+
+    <div class="card">
+        <h2>Dados da Empresa</h2>
+        <p class="subtitle">Nome da Empresa</p>
+        <div class="form-group">
+            <input type="text" placeholder="Ex: Clínica Saúde Lda" id="empresa">
         </div>
-
-        <!-- 2. EMISSÃO À PROVA DE MULTA -->
-        <label>NIF do Cliente * 10 dígitos</label>
-        <input type="tel" id="nif" placeholder="5001234567" maxlength="10" inputmode="numeric">
-
-        <label>Nome do Cliente *</label>
-        <input type="text" id="nome" placeholder="Nome completo ou empresa">
-
-        <label>Valor da Venda Kz *</label>
-        <input type="number" id="valor" placeholder="Ex: 85000" inputmode="decimal">
-
-        <button class="btn btn-azul" onclick="emitirFactura()">
-            Facturar AGT 2026 - 100% Legal
-        </button>
-
-        <!-- 3. COFRE + SIMULADOR + FISCAL -->
-        <button class="btn btn-verde" onclick="verCofre()">Cofre: Ver Facturas Guardadas</button>
-        <button class="btn btn-laranja" onclick="simularIVA()">Quanto Devo de IVA?</button>
-        <button class="btn btn-vermelho" onclick="modoFiscal()">FISCAL CHEGOU</button>
-
-        <div class="totais">
-            <div class="muted">Total facturado: <strong id="totalFacturado">0 Kz</strong></div>
-            <div class="muted">IVA acumulado: <strong id="totalIVA">0 Kz</strong></div>
+        <div class="form-group">
+            <label>NIF</label>
+            <input type="text" placeholder="5000123456" id="nifEmpresa">
+        </div>
+        <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" placeholder="923 000 000" id="telEmpresa">
+        </div>
+        <div class="form-group">
+            <label>Endereço</label>
+            <input type="text" placeholder="Luanda, Angola" id="endEmpresa">
         </div>
     </div>
 
-    <!-- MODAL COFRE -->
-    <div id="modalCofre" class="modal">
-        <div class="modal-box">
-            <h3>Cofre Digital Milton Tech</h3>
-            <div id="listaFacturas"></div>
-            <button class="btn btn-azul" onclick="fechar('modalCofre')">Fechar</button>
+    <div class="card">
+        <h2>Dados do Cliente</h2>
+        <p class="subtitle">Nome do Cliente</p>
+        <div class="form-group">
+            <input type="text" placeholder="" id="cliente">
+        </div>
+        <div class="form-group">
+            <label>NIF do Cliente</label>
+            <input type="text" placeholder="999999999" id="nifCliente">
         </div>
     </div>
 
-    <!-- MODAL IVA -->
-    <div id="modalIVA" class="modal">
-        <div class="modal-box">
-            <h3>Simulador IVA Mensal</h3>
-            <div id="dadosIVA"></div>
-            <button class="btn btn-azul" onclick="fechar('modalIVA')">Entendi</button>
-        </div>
-    </div>
+    <button class="btn" onclick="alert('Factura salva!')">Gerar Factura</button>
 
 <script>
-// ========== MILTON TECH AGT 2026 - CORE ==========
-const DB = JSON.parse(localStorage.getItem('MT_AGT2026')) || { facturas: [] };
-
-// Actualiza totais na tela
-function actualizarTotais() {
-    const total = DB.facturas.reduce((s, f) => s + f.valor, 0);
-    const iva = DB.facturas.reduce((s, f) => s + f.iva, 0);
-    document.getElementById('totalFacturado').innerText = total.toLocaleString() + ' Kz';
-    document.getElementById('totalIVA').innerText = iva.toLocaleString() + ' Kz';
-}
-
-// 1. ALARME IVA AUTOMÁTICO
-(function() {
-    const d = new Date(), dia = d.getDate(), mes = d.getMonth();
-    if (dia >= 25 &&!localStorage.getItem('iva' + mes)) {
-        document.getElementById('diaHoje').innerText = dia;
-        document.getElementById('diasRestantes').innerText = 30 - dia;
-        document.getElementById('alertaIVA').style.display = 'block';
-    }
-})();
-
-function dispensarIVA() {
-    localStorage.setItem('iva' + new Date().getMonth(), 'ok');
-    document.getElementById('alertaIVA').style.display = 'none';
-}
-
-function abrirIVA() {
-    alert('Módulo IVA: Em breve conecta com portal AGT. Por agora, separa 14% das vendas.');
-    dispensarIVA();
-}
-
-// 2. EMITIR FACTURA - ANTI MULTA
-function emitirFactura() {
-    const nif = document.getElementById('nif').value.replace(/\D/g, '');
-    const nome = document.getElementById('nome').value.trim();
-    const valor = parseFloat(document.getElementById('valor').value);
-
-    // Validações AGT
-    if (nif.length!== 10) return alert('ERRO AGT: NIF deve ter 10 dígitos. Ex: 5001234567');
-    if (nome.length < 3) return alert('ERRO AGT: Nome do cliente obrigatório');
-    if (!valor || valor < 100) return alert('ERRO AGT: Valor mínimo 100 Kz');
-
-    // Gera dados AGT 2026
-    const agora = Date.now();
-    const hash = `MT${agora}${nif.slice(-3)}`;
-    const factura = {
-        id: agora,
-        data: new Date().toLocaleDateString('pt-AO'),
-        hora: new Date().toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' }),
-        nif, nome, valor,
-        iva: Math.round(valor * 0.14),
-        hash,
-        qr: `https://agt.minfin.gov.ao/qr/${hash}`
-    };
-
-    DB.facturas.push(factura);
-    localStorage.setItem('MT_AGT2026', JSON.stringify(DB));
-
-    alert(`✅ FACTURA AGT 2026 EMITIDA\nCliente: ${nome}\nTotal: ${valor.toLocaleString()} Kz\nIVA: ${factura.iva} Kz\nHash: ${hash}\n\nEstás 100% legal.`);
-
-    // Limpa
-    ['nif', 'nome', 'valor'].forEach(id => document.getElementById(id).value = '');
-    actualizarTotais();
-}
-
-// 3. COFRE DIGITAL
-function verCofre() {
-    const lista = document.getElementById('listaFacturas');
-    if (!DB.facturas.length) {
-        lista.innerHTML = '<p class="muted">Nenhuma factura emitida ainda.</p>';
-    } else {
-        lista.innerHTML = DB.facturas.slice().reverse().map(f => `
-            <div class="linha">
-                <strong>${f.data} ${f.hora}</strong><br>
-                ${f.nome} - NIF: ${f.nif}<br>
-                ${f.valor.toLocaleString()} Kz | IVA: ${f.iva} Kz<br>
-                <span class="muted">Hash: ${f.hash}</span>
-            </div>
-        `).join('');
-    }
-    document.getElementById('modalCofre').style.display = 'flex';
-}
-
-// 4. SIMULADOR IVA
-function simularIVA() {
-    const total = DB.facturas.reduce((s, f) => s + f.valor, 0);
-    const iva = DB.facturas.reduce((s, f) => s + f.iva, 0);
-    document.getElementById('dadosIVA').innerHTML = `
-        <div class="linha">Vendas do mês: <strong>${total.toLocaleString()} Kz</strong></div>
-        <div class="linha">IVA a pagar dia 30: <strong style="color:var(--vermelho)">${iva.toLocaleString()} Kz</strong></div>
-        <div class="linha muted">Regra Milton Tech: Se gastares o IVA, multa mínima é 50.000 Kz. Separa agora.</div>
-    `;
-    document.getElementById('modalIVA').style.display = 'flex';
-}
-
-// 5. MODO FISCAL
-function modoFiscal() {
-    const ultimas = DB.facturas.slice(-15);
-    const totalIVA = DB.facturas.reduce((s, f) => s + f.iva, 0);
-
-    let txt = `MILTON TECH - RELATÓRIO FISCAL AGT 2026\n`;
-    txt += `Gerado: ${new Date().toLocaleString('pt-AO')}\n`;
-    txt += `Software Certificado: Milton Tech v1.0\n`;
-    txt += `Total Facturas Emitidas: ${DB.facturas.length}\n`;
-    txt += `IVA Acumulado: ${totalIVA.toLocaleString()} Kz\n\n`;
-    txt += `=== ÚLTIMAS 15 FACTURAS ===\n`;
-
-    ultimas.forEach(f => {
-        txt += `${f.data} ${f.hora} | ${f.nif} | ${f.nome} | ${f.valor}Kz | IVA:${f.iva}Kz | ${f.hash}\n`;
-    });
-
-    const blob = new Blob([txt], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `MiltonTech-AGT-${new Date().toISOString().slice(0, 10)}.txt`;
-    a.click();
-
-    alert('Relatório gerado com sucesso. Entrega este ficheiro ao fiscal.');
-}
-
-function fechar(id) {
-    document.getElementById(id).style.display = 'none';
-}
-
-// Inicia
-actualizarTotais();
+    // Aqui depois podemos adicionar o cálculo, tabela de produtos, etc
 </script>
+
 </body>
 </html>
